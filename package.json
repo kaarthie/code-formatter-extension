@@ -4,11 +4,15 @@
   "description": "Extension for organizing the code ",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.80.0"
   },
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Venusubashhhh/code-formatter.git" 
+    },
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
@@ -43,7 +47,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.80.0",
     "@vscode/test-cli": "^0.0.4",
     "@vscode/test-electron": "^2.3.8",
     "eslint": "^8.56.0",
@@ -52,5 +56,6 @@
   "dependencies": {
     "dotenv": "^16.4.1",
     "openai": "^4.26.0"
-  }
+  },
+  "icon": ""
 }
