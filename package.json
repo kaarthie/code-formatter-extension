@@ -18,8 +18,16 @@
         "title": "Generate Documentation"
       },
       {
-        "command": "extension.createFolders",
+        "command": "backend.createFolders",
         "title": "Generate Backend Structure"
+      },
+      {
+        "command": "frontend.createFolders",
+        "title": "Generate Frontend Structure"
+      },
+      {
+        "command": "extension.removeCommentsAndLogs",
+        "title": "Remove Comments and log statements"
       }
     ]
   },
@@ -38,7 +46,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "axios": "^1.6.7",
+    "dotenv": "^16.4.1",
     "openai": "^4.26.0"
   }
 }
