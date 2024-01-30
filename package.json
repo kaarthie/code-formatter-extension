@@ -28,6 +28,10 @@
       {
         "command": "extension.removeCommentsAndLogs",
         "title": "Remove Comments and log statements"
+      },
+      {
+        "command": "extension.removeEmptyFiles",
+        "title": "Remove Empty Files and Folders"
       }
     ]
   },

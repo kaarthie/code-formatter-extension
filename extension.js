@@ -12,72 +12,23 @@ const openai = new OpenAI({
     apiKey
 });
 
-var flag = 0;
+var flag = 0; // For sending three requests per minute
 
 
 function activate(context) {
     console.log('Congratulations, your extension is now active!');
 
-    let disposable1 = vscode.commands.registerCommand('backend.createFolders', function () {
-        const projectPath = vscode.workspace.rootPath;
+    let backendStructureDisposable = vscode.commands.registerCommand('backend.createFolders', createBackendStructure);
 
-        if (projectPath) {
-            vscode.window.showInputBox({ prompt: 'Enter FrameWork (Default: Express):', placeHolder: 'fastify/express' })
-                .then((data) => createFolders(projectPath, data.toLowerCase() || 'express'));
-        } else {
-            vscode.window.showWarningMessage('Please open a workspace to create folders.');
-        }
-    });
+    let documentationDisposable = vscode.commands.registerCommand('codeformatter.generateDocumentation', createDocumentation);
 
-    let disposable2 = vscode.commands.registerCommand('codeformatter.generateDocumentation', async function () {
-        // Get the workspace folders
-        const workspaceFolders = vscode.workspace.workspaceFolders;
+    let frontendStructureDisposable = vscode.commands.registerCommand('frontend.createFolders', createFrontendStructure);
 
-        if (!workspaceFolders) {
-            vscode.window.showErrorMessage('No workspace folders.');
-            return;
-        }
+    let removeCommentsAndLogsDisposable = vscode.commands.registerCommand('extension.removeCommentsAndLogs', removeCommentsAndLogsCommand);
 
-        // Generate documentation for all JS files in all workspace folders
-        for (const workspaceFolder of workspaceFolders) {
-            const folderPath = workspaceFolder.uri.fsPath;
-            const outputFolder = path.join(folderPath, 'documentation'); // Create a 'documentation' folder in each workspace folder
-            await generateDocumentation(folderPath, outputFolder);
-        }
+    let removeEmptyFilesDisposable = vscode.commands.registerCommand('extension.removeEmptyFiles', removeEmptyFilesAndFoldersCommand);
 
-        vscode.window.showInformationMessage('Generated documentation for all JS files!');
-    });
-
-    let disposable3 = vscode.commands.registerCommand('extension.removeCommentsAndLogs', function () {
-        const editor = vscode.window.activeTextEditor;
-
-        if (editor && (editor.document.languageId === 'javascript' || editor.document.languageId === 'javascriptreact')) {
-            const projectPath = vscode.workspace.rootPath;
-
-            if (projectPath) {
-                // If the editor is open in a project
-                traverseDirectory(projectPath);
-
-                vscode.window.showInformationMessage('Comments, console logs, unused imports, empty files, and empty folders removed successfully.');
-            } else {
-                vscode.window.showWarningMessage('Please open a workspace to apply changes across all files.');
-            }
-        } else {
-            vscode.window.showWarningMessage('Please open a JavaScript or React file to remove comments, console logs, and unused imports.');
-        }
-    });
-
-    let disposable4 = vscode.commands.registerCommand('frontend.createFolders', function () {
-        const projectPath = vscode.workspace.rootPath;
-    
-        if (projectPath) {
-          createFolders2(projectPath);
-        } else {
-          vscode.window.showWarningMessage('Please open a react workspace to create folder structure.');
-        }
-      });
-    
-    context.subscriptions.push(disposable1, disposable2, disposable3, disposable4);
+    context.subscriptions.push(backendStructureDisposable, documentationDisposable, frontendStructureDisposable, removeCommentsAndLogsDisposable, removeEmptyFilesDisposable);
 }
 
 async function generateDocumentation(folderPath, outputFolder) {
@@ -126,6 +77,46 @@ async function generateDocumentation(folderPath, outputFolder) {
             console.error(`Error processing ${item}: ${error.message}`);
         }
     }
+}
+
+async function createBackendStructure() {
+    const projectPath = vscode.workspace.rootPath;
+
+    if (projectPath) {
+        vscode.window.showInputBox({ prompt: 'Enter FrameWork (Default: Express):', placeHolder: 'fastify/express' })
+            .then((data) => createFolders(projectPath, data.toLowerCase() || 'express'));
+    } else {
+        vscode.window.showWarningMessage('Please open a workspace to create folders.');
+    }
+}
+
+async function createFrontendStructure() {
+    const projectPath = vscode.workspace.rootPath;
+
+    if (projectPath) {
+        createFolders2(projectPath);
+    } else {
+        vscode.window.showWarningMessage('Please open a react workspace to create folder structure.');
+    }
+}
+
+async function createDocumentation() {
+    // Get the workspace folders
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folders.');
+        return;
+    }
+
+    // Generate documentation for all JS files in all workspace folders
+    for (const workspaceFolder of workspaceFolders) {
+        const folderPath = workspaceFolder.uri.fsPath;
+        const outputFolder = path.join(folderPath, 'documentation'); // Create a 'documentation' folder in each workspace folder
+        await generateDocumentation(folderPath, outputFolder);
+    }
+
+    vscode.window.showInformationMessage('Generated documentation for all JS files!');
 }
 
 async function getChatGPTResponse(input) {
@@ -228,85 +219,111 @@ function createFolders2(rootPath) {
     const publicPath = path.join(rootPath, 'public');
     const foldersToCreate = ['components', 'utils', 'pages', 'pages/home', 'services', 'context'];
     const assetsPath = path.join(publicPath, 'assets');
-  
+
     if (!fs.existsSync(srcPath)) {
-      vscode.window.showWarningMessage('Source folder not found. Please make sure your project structure is correct.');
-      return;
+        vscode.window.showWarningMessage('Source folder not found. Please make sure your project structure is correct.');
+        return;
     }
-  
+
     if (!fs.existsSync(publicPath)) {
-      vscode.window.showWarningMessage('Public folder not found. Please make sure your project structure is correct.');
-      return;
+        vscode.window.showWarningMessage('Public folder not found. Please make sure your project structure is correct.');
+        return;
     }
-  
+
     // Create folders within src
     foldersToCreate.forEach(folder => {
-      const folderPath = path.join(srcPath, folder);
-      if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath);
-      }
+        const folderPath = path.join(srcPath, folder);
+        if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath);
+        }
     });
-  
+
     // Create assets folder within public
     if (!fs.existsSync(assetsPath)) {
-      fs.mkdirSync(assetsPath);
+        fs.mkdirSync(assetsPath);
     }
-  
-   vscode.window.showInformationMessage('Folder Structure created successfully 🎉', 5000);
-  }
-  
+
+    vscode.window.showInformationMessage('Folder Structure created successfully 🎉', 5000);
+}
+
 function processFile(filePath) {
     // Read the file content
     let fileContent = fs.readFileSync(filePath, 'utf-8');
 
-    // Check if the file is empty
-    if (fileContent.trim() === '') {
-        // Delete the empty file
-        fs.unlinkSync(filePath);
-    } else {
-        // Apply the removeCommentsAndLogs function
-        fileContent = removeCommentsAndLogs(fileContent);
+    // Apply the removeCommentsAndLogs function
+    fileContent = removeCommentsAndLogs(fileContent);
 
-        // Write the modified content back to the file
-        fs.writeFileSync(filePath, fileContent, 'utf-8');
-    }
+    // Write the modified content back to the file
+    fs.writeFileSync(filePath, fileContent, 'utf-8');
 }
 
-function traverseDirectory(dirPath) {
-    // Get all files and directories in the current directory
+function removeEmptyFilesAndFolders(dirPath) {
     const entries = fs.readdirSync(dirPath);
-
-    // Flag to check if the directory is empty
-    let isDirectoryEmpty = true;
 
     entries.forEach(entry => {
         const entryPath = path.join(dirPath, entry);
         const stat = fs.statSync(entryPath);
 
         if (stat.isDirectory()) {
-            // Recursively traverse subdirectories
-            traverseDirectory(entryPath);
+            // Recursively remove empty subdirectories
+            removeEmptyFilesAndFolders(entryPath);
 
             // Check if the subdirectory is empty
-            if (fs.readdirSync(entryPath).length > 0) {
-                isDirectoryEmpty = false;
-            } else {
-                // Delete the empty subdirectory
+            if (fs.readdirSync(entryPath).length === 0) {
                 fs.rmdirSync(entryPath);
             }
-        } else if (stat.isFile() && entryPath.endsWith('.js')) {
-            // Process JavaScript files
-            processFile(entryPath);
-
-            // The directory is not empty if there's at least one JavaScript file
-            isDirectoryEmpty = false;
+        } else if (stat.isFile() && fs.readFileSync(entryPath, 'utf-8').trim() === '') {
+            // Remove empty files
+            fs.unlinkSync(entryPath);
         }
     });
+}
 
-    // Delete the current directory if it is empty and not the root directory
-    if (isDirectoryEmpty && dirPath !== vscode.workspace.rootPath) {
-        fs.rmdirSync(dirPath);
+function removeEmptyFilesAndFoldersCommand() {
+    const projectPath = vscode.workspace.rootPath;
+
+    if (projectPath) {
+        // If the workspace is open
+        removeEmptyFilesAndFolders(projectPath);
+
+        vscode.window.showInformationMessage('Empty files and folders removed successfully.');
+    } else {
+        vscode.window.showWarningMessage('Please open a workspace to remove empty files and folders.');
     }
+}
+
+function removeCommentsAndLogsCommand() {
+    const editor = vscode.window.activeTextEditor;
+
+    if (editor && (editor.document.languageId === 'javascript' || editor.document.languageId === 'javascriptreact')) {
+        const projectPath = vscode.workspace.rootPath;
+
+        if (projectPath) {
+            // If the editor is open in a project
+            traverseDirectory(projectPath);
+
+            vscode.window.showInformationMessage('Comments, console logs, and unused imports removed successfully.');
+        } else {
+            vscode.window.showWarningMessage('Please open a workspace to apply changes across all files.');
+        }
+    } else {
+        vscode.window.showWarningMessage('Please open a JavaScript or React file to remove comments, console logs, and unused imports.');
+    }
+}
+
+function traverseDirectory(dirPath) {
+    const entries = fs.readdirSync(dirPath);
+
+    entries.forEach(entry => {
+        const entryPath = path.join(dirPath, entry);
+        const stat = fs.statSync(entryPath);
+
+        if (stat.isDirectory()) {
+            traverseDirectory(entryPath);
+        } else if (stat.isFile() && entryPath.endsWith('.js')) {
+            processFile(entryPath);
+        }
+    });
 }
 
 module.exports = { activate };
