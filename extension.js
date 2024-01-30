@@ -2,17 +2,32 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 const OpenAI = require('openai');
+const { expressBp, fastifyBp, expressPackageJson, fastifyPackageJson } = require('./utils/boilerPlateCodes.js')
 
 const apiKey = "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";
 
 const openai = new OpenAI({
     apiKey
 });
-var flag = 0;
-function activate(context) {
-    console.log('Congratulations, your extension "codeformatter" is now active!');
 
-    let disposable = vscode.commands.registerCommand('codeformatter.generateDocumentation', async function () {
+var flag = 0;
+
+
+function activate(context) {
+    console.log('Congratulations, your extension is now active!');
+
+    let disposable1 = vscode.commands.registerCommand('extension.createFolders', function () {
+        const projectPath = vscode.workspace.rootPath;
+
+        if (projectPath) {
+            vscode.window.showInputBox({ prompt: 'Enter FrameWork (Default: Express):', placeHolder: 'fastify/express' })
+                .then((data) => createFolders(projectPath, data.toLowerCase() || 'express'));
+        } else {
+            vscode.window.showWarningMessage('Please open a workspace to create folders.');
+        }
+    });
+
+    let disposable2 = vscode.commands.registerCommand('codeformatter.generateDocumentation', async function () {
         // Get the workspace folders
         const workspaceFolders = vscode.workspace.workspaceFolders;
 
@@ -31,7 +46,7 @@ function activate(context) {
         vscode.window.showInformationMessage('Generated documentation for all JS files!');
     });
 
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable1, disposable2);
 }
 
 async function generateDocumentation(folderPath, outputFolder) {
@@ -69,11 +84,11 @@ async function generateDocumentation(folderPath, outputFolder) {
                     console.log(item.toString());
                 }
 
-                    const response = await getChatGPTResponse(fileContent);
-                    const documentationFileName = path.basename(item, path.extname(item)) + '_documentation.txt';
-                    const documentationFilePath = path.join(outputFolder, documentationFileName);
-                    fs.writeFileSync(documentationFilePath, response);
-                    vscode.window.showInformationMessage(`Generated documentation for ${item}`);
+                const response = await getChatGPTResponse(fileContent);
+                const documentationFileName = path.basename(item, path.extname(item)) + '_documentation.txt';
+                const documentationFilePath = path.join(outputFolder, documentationFileName);
+                fs.writeFileSync(documentationFilePath, response);
+                vscode.window.showInformationMessage(`Generated documentation for ${item}`);
 
             }
         } catch (error) {
@@ -81,20 +96,6 @@ async function generateDocumentation(folderPath, outputFolder) {
         }
     }
 }
-
-// async function getChatGPTResponse(input) {
-//     try {
-//         const completion = await openai.chat.completions.create({
-//             messages: [{ role: "system", content: "You are a helpful assistant." }, { role: "user", content: input.trim()}],
-//             model: "gpt-3.5-turbo",
-//         });
-//         console.log('Token count:', completion.usage.total_tokens);
-//         return completion.choices[0].message.content.trim();
-//     } catch (error) {
-//         console.error(`Error with ChatGPT API request: ${error.message}`);
-//         return 'Please upgrade the API key or give only 3 requests per minute';
-//     }
-// }
 
 async function getChatGPTResponse(input) {
     try {
@@ -144,7 +145,50 @@ async function getChatGPTResponse(input) {
     }
 }
 
+function createFolders(rootPath, appFrameWork) {
+    const foldersToCreate = [
+        'src',
+        'src/apis',
+        'src/constants',
+        'src/middleware',
+        'src/dao',
+        'src/config',
+        'utils'
+    ];
 
-module.exports = {
-    activate
-};
+    // Creates folders as provided in the above array 
+
+    foldersToCreate.forEach(folder => {
+        const folderPath = path.join(rootPath, folder);
+        if (!fs.existsSync(folderPath)) {
+            if (path.extname(folder) !== '') {
+                fs.writeFileSync(folderPath, '');
+            } else {
+                fs.mkdirSync(folderPath);
+            }
+        }
+    });
+
+    // .env creation
+
+    fs.writeFileSync(path.join(rootPath, '.env'), 'SAMPLE_KEY=sample_value');
+
+    // Creation of package.json file for express/fastify
+
+    const packageJsonPath = path.join(rootPath, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+        const defaultPackageJson = appFrameWork == 'fastify' ? fastifyPackageJson : expressPackageJson;
+        fs.writeFileSync(packageJsonPath, JSON.stringify(defaultPackageJson, null, 2));
+    }
+
+    // Appending Boiler Plate code for express/fastify in app.js
+
+    const appJsPath = path.join(rootPath, 'src/app.js');
+    if (!fs.existsSync(appJsPath)) {
+        const appJsCode = appFrameWork == 'fastify' ? fastifyBp : expressBp;
+        fs.writeFileSync(appJsPath, appJsCode);
+    }
+
+    vscode.window.showInformationMessage('Folders Structure Created🎉. Install packages using "npm install" and start the server using "npm start"');
+}
+module.exports = { activate };

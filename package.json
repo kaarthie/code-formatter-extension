@@ -16,6 +16,10 @@
       {
         "command": "codeformatter.generateDocumentation",
         "title": "Generate Documentation"
+      },
+      {
+        "command": "extension.createFolders",
+        "title": "Generate Backend Structure"
       }
     ]
   },
