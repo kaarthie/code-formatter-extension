@@ -6,7 +6,7 @@ const removeCommentsAndLogs = require('./utils/cleanCode.js');
 
 const { expressBp, fastifyBp, expressPackageJson, fastifyPackageJson } = require('./utils/boilerPlateCodes.js')
 
-const apiKey = "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";
+const apiKey = "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";
 
 const openai = new OpenAI({
     apiKey
@@ -14,7 +14,7 @@ const openai = new OpenAI({
 
 var flag = 0; // For sending three requests per minute
 
-
+// Extension Activate Function
 function activate(context) {
     console.log('Congratulations, your extension is now active!');
 
@@ -31,6 +31,7 @@ function activate(context) {
     context.subscriptions.push(backendStructureDisposable, documentationDisposable, frontendStructureDisposable, removeCommentsAndLogsDisposable, removeEmptyFilesDisposable);
 }
 
+// Code Documentation Creation
 async function generateDocumentation(folderPath, outputFolder) {
     // Create the 'documentation' folder if it doesn't exist
     if (!fs.existsSync(outputFolder)) {
@@ -79,27 +80,6 @@ async function generateDocumentation(folderPath, outputFolder) {
     }
 }
 
-async function createBackendStructure() {
-    const projectPath = vscode.workspace.rootPath;
-
-    if (projectPath) {
-        vscode.window.showInputBox({ prompt: 'Enter FrameWork (Default: Express):', placeHolder: 'fastify/express' })
-            .then((data) => createFolders(projectPath, data.toLowerCase() || 'express'));
-    } else {
-        vscode.window.showWarningMessage('Please open a workspace to create folders.');
-    }
-}
-
-async function createFrontendStructure() {
-    const projectPath = vscode.workspace.rootPath;
-
-    if (projectPath) {
-        createFolders2(projectPath);
-    } else {
-        vscode.window.showWarningMessage('Please open a react workspace to create folder structure.');
-    }
-}
-
 async function createDocumentation() {
     // Get the workspace folders
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -119,6 +99,30 @@ async function createDocumentation() {
     vscode.window.showInformationMessage('Generated documentation for all JS files!');
 }
 
+// Backend Folder Structure Creation
+async function createBackendStructure() {
+    const projectPath = vscode.workspace.rootPath;
+
+    if (projectPath) {
+        vscode.window.showInputBox({ prompt: 'Enter FrameWork (Default: Express):', placeHolder: 'fastify/express' })
+            .then((data) => createFolders(projectPath, data.toLowerCase() || 'express'));
+    } else {
+        vscode.window.showWarningMessage('Please open a workspace to create folders.');
+    }
+}
+
+// Frontend Folder Structure Creation
+async function createFrontendStructure() {
+    const projectPath = vscode.workspace.rootPath;
+
+    if (projectPath) {
+        createFolders2(projectPath);
+    } else {
+        vscode.window.showWarningMessage('Please open a react workspace to create folder structure.');
+    }
+}
+
+// ChatGPT Model Request Function
 async function getChatGPTResponse(input) {
     try {
         // Define the maximum token count allowed by the model
@@ -167,6 +171,7 @@ async function getChatGPTResponse(input) {
     }
 }
 
+// Backend Folders Creation
 function createFolders(rootPath, appFrameWork) {
     const foldersToCreate = [
         'src',
@@ -214,6 +219,7 @@ function createFolders(rootPath, appFrameWork) {
     vscode.window.showInformationMessage('Folders Structure Created🎉. Install packages using "npm install" and start the server using "npm start"');
 }
 
+// Frontend Folders Creation
 function createFolders2(rootPath) {
     const srcPath = path.join(rootPath, 'src');
     const publicPath = path.join(rootPath, 'public');
@@ -246,6 +252,7 @@ function createFolders2(rootPath) {
     vscode.window.showInformationMessage('Folder Structure created successfully 🎉', 5000);
 }
 
+// Process file for finding comments and log statements
 function processFile(filePath) {
     // Read the file content
     let fileContent = fs.readFileSync(filePath, 'utf-8');
@@ -257,6 +264,7 @@ function processFile(filePath) {
     fs.writeFileSync(filePath, fileContent, 'utf-8');
 }
 
+// Removes empty files and folders
 function removeEmptyFilesAndFolders(dirPath) {
     const entries = fs.readdirSync(dirPath);
 
@@ -292,6 +300,7 @@ function removeEmptyFilesAndFoldersCommand() {
     }
 }
 
+// Removes comments and log statements
 function removeCommentsAndLogsCommand() {
     const editor = vscode.window.activeTextEditor;
 
