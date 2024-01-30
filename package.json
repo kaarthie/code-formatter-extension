@@ -57,5 +57,5 @@
     "dotenv": "^16.4.1",
     "openai": "^4.26.0"
   },
-  "icon": ""
+  "icon": "https://cdn-icons-png.flaticon.com/512/1458/1458497.png"
 }
