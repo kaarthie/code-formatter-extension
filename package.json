@@ -1,6 +1,6 @@
 {
-  "name": "code-formatter",
-  "displayName": "code-formatter",
+  "name": "CrispCode",
+  "displayName": "CrispCode",
   "description": "Extension for organizing the code ",
   "version": "0.0.1",
   "engines": {
@@ -57,5 +57,5 @@
     "dotenv": "^16.4.1",
     "openai": "^4.26.0"
   },
-  "icon": "https://cdn-icons-png.flaticon.com/512/1458/1458497.png"
+  "icon": "logo.png"
 }
