@@ -2,6 +2,7 @@
   "name": "CrispCode",
   "displayName": "CrispCode",
   "description": "Extension for organizing the code ",
+  "publisher": "CrispCode",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.80.0"

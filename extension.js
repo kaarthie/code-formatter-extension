@@ -6,7 +6,7 @@ const removeCommentsAndLogs = require('./utils/cleanCode.js');
 
 const { expressBp, fastifyBp, expressPackageJson, fastifyPackageJson } = require('./utils/boilerPlateCodes.js')
 
-const apiKey = "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";
+const apiKey = "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";
 
 const openai = new OpenAI({
     apiKey
